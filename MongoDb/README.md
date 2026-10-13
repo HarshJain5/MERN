@@ -18,7 +18,10 @@
 10. [Vega City Practice](#10-vega-city-practice)
 11. [EMP Collection Practice](#11-emp-collection-practice)
 12. [Common Mistakes](#12-common-mistakes)
-13. [Quick Revision](#13-quick-revision)
+13. [Element Operators](#13-element-operators)
+14. [Evaluation Operators](#14-evaluation-operators)
+15. [Date Query Practice](#15-date-query-practice)
+16. [Quick Revision](#16-quick-revision)
 
 ---
 
@@ -642,7 +645,104 @@ db.students.find({}, { name: 1, _id: 0 })
 
 ---
 
-## 13. Quick Revision
+## 13. Element Operators
+
+Element operators help you check a document's fields, such as whether a field exists or what data type it contains.
+
+### `$exists` — check whether a field exists
+
+Use `$exists: true` to find documents that contain a field. Use `$exists: false` to find documents where that field is missing.
+
+```javascript
+db.emp.find({ commission: { $exists: true } })
+db.emp.find({ commission: { $exists: false } })
+```
+
+**Important:** `$exists` checks whether the field is present, not whether its value is non-null. A field with `null` still exists.
+
+### `$type` — check a field's data type
+
+Use `$type` to find documents where a field has a particular BSON data type.
+
+```javascript
+db.students.find({ age: { $type: "string" } })
+db.students.find({ age: { $type: "int" } })
+db.students.find({ skills: { $type: "array" } })
+```
+
+Common type names include `string`, `int`, `double`, `bool`, `date`, `object`, and `array`. The value stored in a field determines whether the document matches.
+
+---
+
+## 14. Evaluation Operators
+
+Evaluation operators let MongoDB check values using expressions or match text patterns.
+
+### `$expr` — compare fields or use expressions
+
+`$expr` allows aggregation expressions to be used inside a query filter. It is useful when comparing the values of two fields in the same document.
+
+```javascript
+db.products.find({
+  $expr: { $gt: ["$sellingPrice", "$costPrice"] }
+})
+```
+
+This finds products whose `sellingPrice` is greater than their `costPrice`. The `$` before a field name means MongoDB should use that field's value.
+
+### `$regex` — search for a text pattern
+
+`$regex` finds string values that match a regular expression pattern.
+
+```javascript
+// Starts with "A"
+db.students.find({ name: { $regex: "^A" } })
+
+// Ends with "a"
+db.students.find({ name: { $regex: "a$" } })
+
+// Contains "mit" anywhere in the string
+db.students.find({ name: { $regex: "mit" } })
+
+// Case-insensitive match
+db.students.find({ name: { $regex: "^a", $options: "i" } })
+```
+
+Quick pattern guide:
+
+- `^A` means the string starts with `A`.
+- `a$` means the string ends with `a`.
+- `mit` means the string contains `mit` anywhere.
+- `$options: "i"` makes the match case-insensitive.
+
+Regular expressions can be useful, but broad patterns may be slower on large collections. Use a more specific pattern when possible.
+
+---
+
+## 15. Date Query Practice
+
+MongoDB stores dates as Date values. When searching by date, use `new Date(...)` so that MongoDB compares dates rather than ordinary strings.
+
+### Find employees hired during 1982
+
+```javascript
+db.emp.find({
+  hiredate: {
+    $gte: new Date("1982-01-01"),
+    $lt: new Date("1983-01-01")
+  }
+})
+```
+
+- `$gte` includes January 1, 1982.
+- `$lt` stops before January 1, 1983.
+- This range includes every date in 1982, including December 31.
+
+**Note:** This assumes the field is named `hiredate` and is stored as a MongoDB Date. If your class data uses a different field name or stores dates as strings, adjust the query to match the actual data.
+
+---
+
+## 16. Quick Revision
 
 | Method / Operator | Meaning | Example |
 |---|---|---|
@@ -662,6 +762,10 @@ db.students.find({}, { name: 1, _id: 0 })
 | `$or` | Any condition matches | `{ $or: [{ deptno: 20 }, { sal: { $gt: 3000 } }] }` |
 | `$nor` | None of the conditions match | `{ $nor: [{ deptno: 10 }, { job: "CLERK" }] }` |
 | `$not` | Negate a field condition | `{ sal: { $not: { $gt: 3000 } } }` |
+| `$exists` | Check whether a field is present | `{ commission: { $exists: true } }` |
+| `$type` | Match a field's data type | `{ age: { $type: "int" } }` |
+| `$expr` | Compare field values using an expression | `{ $expr: { $gt: ["$sellingPrice", "$costPrice"] } }` |
+| `$regex` | Match a text pattern | `{ name: { $regex: "^A" } }` |
 | `$set` | Set a field | `{ $set: { sal: 2500 } }` |
 | `$inc` | Change numeric value by an amount | `{ $inc: { sal: 500 } }` |
 | `$unset` | Remove a field | `{ $unset: { city: "" } }` |
