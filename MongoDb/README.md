@@ -1,6 +1,8 @@
 # MongoDB Complete Notes
 
-> Class-wise MongoDB notes in one file. We'll keep adding each new class topic to this same `README.md`.
+> Simple, beginner-friendly MongoDB notes. We will keep adding every new class topic to this same `README.md`.
+
+**Learning tip:** Read the short explanation first, then run the example in `mongosh`. Replace sample values with values from your own collection when practising.
 
 ## Table of Contents
 
@@ -22,7 +24,7 @@
 
 ## 1. Introduction to MongoDB
 
-MongoDB is a **NoSQL, document-oriented database**. It stores data as BSON documents, which are similar to JSON objects.
+**MongoDB is a NoSQL database** used to store and manage data. Instead of storing data in rows and columns like a traditional SQL table, MongoDB stores it in **documents**. These documents look similar to JSON objects. MongoDB stores them internally in a format called BSON.
 
 ### SQL vs MongoDB terminology
 
@@ -56,10 +58,10 @@ db
 show collections
 ```
 
-- `show dbs`: displays databases containing data.
-- `use college`: switches to the `college` database; it is persisted when data is first stored.
-- `db`: shows the current database.
-- `show collections`: lists collections in the current database.
+- `show dbs`: shows databases that currently contain data.
+- `use college`: switches to the `college` database. MongoDB creates it when you first save data in it.
+- `db`: shows the name of the database you are currently using.
+- `show collections`: lists the collections inside the current database.
 
 ---
 
@@ -73,7 +75,7 @@ db.createCollection("students")
 
 ### Create a capped collection
 
-A capped collection has a fixed maximum size and maintains insertion order. When full, older documents may be overwritten by newer ones.
+A **capped collection** has a fixed maximum storage size and keeps documents in insertion order. When it becomes full, MongoDB can replace older documents with newer ones. It can be useful for keeping recent log records.
 
 ```javascript
 db.createCollection("logs", {
@@ -82,8 +84,8 @@ db.createCollection("logs", {
 })
 ```
 
-- `capped: true` enables capped collection behavior.
-- `size` is measured in bytes, not number of documents.
+- `capped: true` tells MongoDB to create a capped collection.
+- `size` is measured in bytes (storage size), not the number of documents.
 
 ### Drop a collection
 
@@ -99,7 +101,7 @@ db.students.drop()
 
 ### `insertOne()`
 
-Inserts one document.
+Adds one document to a collection.
 
 ```javascript
 db.students.insertOne({
@@ -111,7 +113,7 @@ db.students.insertOne({
 
 ### `insertMany()`
 
-Inserts multiple documents.
+Adds several documents to a collection in one operation.
 
 ```javascript
 db.students.insertMany([
@@ -122,11 +124,11 @@ db.students.insertMany([
 ```
 
 **Important points:**
-- MongoDB automatically generates `_id` if it is not supplied.
-- `_id` uniquely identifies a document within a collection.
-- Duplicate `_id` values in the same collection are rejected.
-- Strings use quotes; numbers do not.
-- Use `:` between a field and its value.
+- If you do not provide `_id`, MongoDB creates one automatically.
+- `_id` is the unique identifier for a document in that collection.
+- Two documents in the same collection cannot have the same `_id`.
+- Write text values inside quotes, such as `"Rahul"`. Write numeric values without quotes, such as `22`.
+- Use a colon (`:`) between a field name and its value.
 
 ---
 
@@ -134,7 +136,7 @@ db.students.insertMany([
 
 ### `find()`
 
-Returns documents matching the filter. An empty filter matches all documents.
+`find()` searches the collection and returns all documents that match your condition. If you do not give a condition, it returns all documents.
 
 ```javascript
 db.students.find()
@@ -145,7 +147,7 @@ db.students.find({ age: 22 })
 
 ### `findOne()`
 
-Returns one matching document, or `null` if none matches.
+`findOne()` returns just one document that matches your condition. If no document matches, it returns `null`.
 
 ```javascript
 db.students.findOne()
@@ -154,17 +156,17 @@ db.students.findOne({ city: "Indore" })
 
 ### String comparison
 
-String comparisons are case-sensitive by default in ordinary exact-match queries. For example, `"Indore"` and `"indore"` are different values.
+By default, MongoDB treats uppercase and lowercase letters as different in an exact string search. So `"Indore"` and `"indore"` may not match each other.
 
 ### `find()` cursor
 
-`find()` returns a cursor. The shell displays results in batches, so a large result set may not appear all at once.
+`find()` gives MongoDB a cursor to the matching results. In simple terms, the results can be shown in batches instead of all at once when there are many documents.
 
 ---
 
 ## 5. Projection
 
-Projection controls which fields appear in the returned documents.
+Projection means selecting which fields should be shown in the result.
 
 ### Include selected fields
 
@@ -175,7 +177,7 @@ db.students.find(
 )
 ```
 
-This includes `name`, `city`, and `_id` by default.
+The result shows `name`, `city`, and `_id`. MongoDB includes `_id` automatically unless you hide it.
 
 ### Include fields and hide `_id`
 
@@ -196,8 +198,8 @@ db.students.find(
 ```
 
 **Rules:**
-- `1` means include; `0` means exclude.
-- Inclusion and exclusion generally cannot be mixed in one projection, except `_id` may be excluded while other fields are included.
+- Use `1` to show a field and `0` to hide a field.
+- Usually, do not mix fields marked `1` and `0` in one projection. The exception is `_id`: you can show other fields and set `_id: 0` to hide it.
 - First argument of `find()` is the **filter**; second argument is the **projection**.
 
 Example:
@@ -215,7 +217,7 @@ db.students.find(
 
 Examples below use an `emp` collection with fields such as `sal` and `job`.
 
-### `$eq` — equal to
+### `$eq` — equal to (the value must be exactly the same)
 
 ```javascript
 db.emp.find({ sal: { $eq: 2000 } })
@@ -227,51 +229,51 @@ Equivalent short form:
 db.emp.find({ sal: 2000 })
 ```
 
-### `$ne` — not equal to
+### `$ne` — not equal to (the value must be different)
 
 ```javascript
 db.emp.find({ job: { $ne: "CLERK" } })
 ```
 
-Note: `$ne` can also match documents where `job` is missing.
+Note: Note: `$ne` can also return documents that do not have a `job` field.
 
-### `$gt` — greater than
+### `$gt` — greater than (more than the given value)
 
 ```javascript
 db.emp.find({ sal: { $gt: 3000 } })
 ```
 
-### `$gte` — greater than or equal to
+### `$gte` — greater than or equal to (the given value or higher)
 
 ```javascript
 db.emp.find({ sal: { $gte: 3000 } })
 ```
 
-### `$lt` — less than
+### `$lt` — less than (below the given value)
 
 ```javascript
 db.emp.find({ sal: { $lt: 1000 } })
 ```
 
-### `$lte` — less than or equal to
+### `$lte` — less than or equal to (the given value or lower)
 
 ```javascript
 db.emp.find({ sal: { $lte: 1000 } })
 ```
 
-### `$in` — matches any value in a list
+### `$in` — matches any value in a list (one of the listed values is enough)
 
 ```javascript
 db.emp.find({ job: { $in: ["CLERK", "MANAGER"] } })
 ```
 
-### `$nin` — matches none of the values in a list
+### `$nin` — matches none of the values in a list (the field value is not in the list)
 
 ```javascript
 db.emp.find({ job: { $nin: ["CLERK", "MANAGER"] } })
 ```
 
-Note: `$nin` may also match documents where `job` is missing.
+Note: Note: `$nin` can also return documents that do not have a `job` field.
 
 ### Salary range examples
 
@@ -302,19 +304,19 @@ db.emp.find({
 })
 ```
 
-This condition cannot be true for a normal numeric salary:
+This condition cannot match a normal numeric salary:
 
 ```javascript
 { sal: { $lt: 1000, $gt: 3000 } }
 ```
 
-It asks the same salary to be below 1000 and above 3000 simultaneously.
+It asks for one salary to be less than 1000 and greater than 3000 at the same time, which is impossible.
 
 ---
 
 ## 7. Logical Operators
 
-### `$and` — all conditions must match
+### `$and` — all conditions must match (every condition must be true)
 
 ```javascript
 db.emp.find({
@@ -334,7 +336,7 @@ db.emp.find({
 })
 ```
 
-### `$or` — at least one condition must match
+### `$or` — at least one condition must match (any one condition can be true)
 
 ```javascript
 db.emp.find({
@@ -345,7 +347,7 @@ db.emp.find({
 })
 ```
 
-### `$nor` — none of the conditions may match
+### `$nor` — none of the conditions may match (all listed conditions must be false)
 
 ```javascript
 db.emp.find({
@@ -356,7 +358,7 @@ db.emp.find({
 })
 ```
 
-### `$not` — negates a field condition
+### `$not` — reverses a field condition (matches when that condition is not true)
 
 ```javascript
 db.emp.find({
@@ -364,7 +366,7 @@ db.emp.find({
 })
 ```
 
-This can also match documents where `sal` is missing.
+This query can also return documents that do not have a `sal` field.
 
 ### Combine `$or` with another condition
 
@@ -380,7 +382,7 @@ db.emp.find({
 })
 ```
 
-**Remember:** `$or` takes an array of condition objects. Conditions placed alongside `$or` in the outer object must also match.
+**Remember:** `$or` takes an array (`[ ]`) of conditions. Any one of those conditions can match, but any extra condition outside `$or` must also match.
 
 ---
 
@@ -388,7 +390,7 @@ db.emp.find({
 
 ### `updateOne()`
 
-Updates the first matching document.
+Changes the first document that matches the filter.
 
 ```javascript
 db.students.updateOne(
@@ -399,7 +401,7 @@ db.students.updateOne(
 
 ### `updateMany()`
 
-Updates all matching documents.
+Changes every document that matches the filter.
 
 ```javascript
 db.students.updateMany(
@@ -408,7 +410,7 @@ db.students.updateMany(
 )
 ```
 
-### `$set` — set or create a field
+### `$set` — add a field or change its value
 
 ```javascript
 db.students.updateOne(
@@ -417,7 +419,7 @@ db.students.updateOne(
 )
 ```
 
-### `$inc` — increment a numeric value
+### `$inc` — increase or decrease a number by a given amount
 
 ```javascript
 db.emp.updateOne(
@@ -426,7 +428,7 @@ db.emp.updateOne(
 )
 ```
 
-### `$unset` — remove a field
+### `$unset` — remove a field from a document
 
 ```javascript
 db.students.updateOne(
@@ -443,7 +445,7 @@ db.students.updateOne(
 
 ### `deleteOne()`
 
-Deletes the first matching document.
+Removes the first document that matches the filter.
 
 ```javascript
 db.students.deleteOne({ name: "Rahul" })
@@ -451,7 +453,7 @@ db.students.deleteOne({ name: "Rahul" })
 
 ### `deleteMany()`
 
-Deletes all matching documents.
+Removes every document that matches the filter.
 
 ```javascript
 db.students.deleteMany({ city: "Dewas" })
@@ -463,7 +465,7 @@ db.students.deleteMany({ city: "Dewas" })
 db.students.deleteMany({})
 ```
 
-> **Caution:** `{}` matches all documents. Confirm your filter before deleting data.
+> **Caution:** An empty filter `{}` matches every document. Double-check your condition before deleting data.
 
 ---
 
@@ -575,7 +577,7 @@ db.emp.find(
 )
 ```
 
-The second object is interpreted as a projection, not as an additional filter.
+MongoDB reads the second object as a projection (which fields to show), not as another search condition.
 
 Correct:
 
@@ -612,7 +614,7 @@ db.emp.find({
 })
 ```
 
-The outer query must be one object. Put additional conditions as properties of that object.
+Keep one main query object. Add any extra condition as another field inside that same object.
 
 ### Mistake 3: Forgetting quotes around strings
 
