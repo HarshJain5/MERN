@@ -22,25 +22,91 @@
 14. [Evaluation Operators](#14-evaluation-operators)
 15. [Date Query Practice](#15-date-query-practice)
 16. [Quick Revision](#16-quick-revision)
+17. [Update Operations and Update Operators](#17-update-operations-and-update-operators)
 
 ---
 
 ## 1. Introduction to MongoDB
 
-**MongoDB is a NoSQL database** used to store and manage data. Instead of storing data in rows and columns like a traditional SQL table, MongoDB stores it in **documents**. These documents look similar to JSON objects. MongoDB stores them internally in a format called BSON.
+**MongoDB is a NoSQL database** used to store and manage data. It stores data as **documents** that look similar to JSON objects. MongoDB stores these documents internally in a format called **BSON**.
+
+### SQL vs NoSQL — Main Difference
+
+**SQL (Structured Query Language)** is the language used to create, read, update, and delete data in relational databases. In everyday conversation, “SQL database” usually refers to a relational database that organizes data into tables.
+
+**NoSQL (commonly expanded as Not Only SQL)** refers to database systems that use data models beyond the traditional relational-table model. MongoDB is a **document-oriented NoSQL database** that stores data as BSON documents inside collections. NoSQL does not mean that data has no structure or that relationships and transactions are impossible.
+
+| Basis | SQL / Relational Database | NoSQL Database (MongoDB example) |
+|---|---|---|
+| Database model | Relational Database Management System (RDBMS) | Non-relational models, such as document, key-value, wide-column, or graph; MongoDB uses the document model |
+| Data storage | Data is organized into tables made of rows and columns | MongoDB stores documents inside collections |
+| Basic data unit | Row (record) and column | Document and field |
+| Schema / structure | Usually follows a predefined table structure with columns and data types | Often has a flexible schema; documents in the same collection may have different fields, and validation rules can enforce structure |
+| Relationships | Commonly modelled with primary keys and foreign keys; tables can be combined using joins | Often modelled using embedded documents or references; MongoDB also supports join-like operations with `$lookup` in aggregation |
+| Query style | Uses SQL statements such as `SELECT`, `INSERT`, `UPDATE`, and `DELETE` | Uses methods and query documents such as `find()`, `insertOne()`, `updateOne()`, and `deleteOne()` |
+| Changing structure | A change to the table structure may require a schema alteration | Flexible documents can make evolving data structures easier, though consistency still needs to be designed |
+| Transactions / ACID | Relational databases commonly support ACID transactions | Support varies by database; MongoDB supports atomic single-document operations and multi-document ACID transactions |
+| Scaling | Often associated with vertical scaling, but many relational databases also support horizontal scaling | Often associated with horizontal scaling; MongoDB supports sharding |
+| Common use cases | Structured data, strong relationships, reporting, and applications needing relational queries | Document-shaped or evolving data, and applications that benefit from flexible document structures |
+| Examples | MySQL, Oracle Database, PostgreSQL, SQL Server | MongoDB, CouchDB, Neo4j, and other systems depending on the NoSQL model |
+
+**Remember:** SQL is also the name of a query language, while “NoSQL” describes a broad family of database systems. Neither approach is always better. Choose based on the application's data, relationships, consistency needs, query patterns, and scaling requirements.
+
+### Vertical Scaling vs Horizontal Scaling
+
+- **Vertical scaling (scale up):** Increase the resources of one server, such as CPU, RAM, or storage, or replace it with a more powerful server.
+- **Horizontal scaling (scale out):** Add more servers or machines and distribute the workload or data across them.
+
+**Easy example:** Upgrading one server from 8 GB RAM to 32 GB RAM is vertical scaling. Adding more servers to share the workload is horizontal scaling.
+
+### ACID Properties
+
+**ACID** describes four properties that help make database transactions reliable.
+
+| Property | Definition in English | Simple explanation |
+|---|---|---|
+| **Atomicity** | A transaction is completed entirely or not completed at all. | If a transaction has several steps and one required step fails, the transaction is rolled back instead of leaving a partial result. |
+| **Consistency** | A transaction takes the database from one valid state to another valid state. | Rules and constraints must remain satisfied before and after the transaction. |
+| **Isolation** | Concurrent transactions should not interfere with each other in an invalid way. | Multiple transactions may run at the same time, but the database controls how their changes interact. |
+| **Durability** | Once a transaction is committed, its changes are persisted. | After a successful commit, the changes should remain saved even if the system restarts, subject to the database's durability guarantees. |
+
+**Important:** It is not accurate to say that all SQL databases support ACID while no NoSQL databases do. ACID support depends on the database and operation. MongoDB provides atomicity for single-document writes and supports ACID transactions across multiple documents when required.
 
 ### SQL vs MongoDB terminology
 
-| SQL | MongoDB |
+| SQL / Relational Database | MongoDB |
 |---|---|
 | Database | Database |
 | Table | Collection |
 | Row / Record | Document |
 | Column | Field |
-| `SELECT` | `find()` |
-| `INSERT` | `insertOne()` / `insertMany()` |
-| `UPDATE` | `updateOne()` / `updateMany()` |
-| `DELETE` | `deleteOne()` / `deleteMany()` |
+| `SELECT * FROM students` | `db.students.find()` |
+| `INSERT INTO students ...` | `db.students.insertOne()` / `insertMany()` |
+| `UPDATE students ...` | `db.students.updateOne()` / `updateMany()` |
+| `DELETE FROM students ...` | `db.students.deleteOne()` / `deleteMany()` |
+
+### Same data represented in SQL and MongoDB
+
+Suppose we store a student's name, age, and city.
+
+**In a SQL table:**
+
+| id | name | age | city |
+|---:|---|---:|---|
+| 1 | Rahul | 22 | Indore |
+
+**In MongoDB, the equivalent document can look like this:**
+
+```javascript
+{
+  _id: 1,
+  name: "Rahul",
+  age: 22,
+  city: "Indore"
+}
+```
+
+The SQL example represents one record in a table; the MongoDB example represents one document in a collection. The field names and values are similar, but the storage model and query syntax differ.
 
 ### Example document
 
@@ -769,6 +835,10 @@ db.emp.find({
 | `$set` | Set a field | `{ $set: { sal: 2500 } }` |
 | `$inc` | Change numeric value by an amount | `{ $inc: { sal: 500 } }` |
 | `$unset` | Remove a field | `{ $unset: { city: "" } }` |
+| `$max` | Set only if the supplied value is greater | `{ $max: { sal: 1000 } }` |
+| `$min` | Set only if the supplied value is smaller | `{ $min: { sal: 500 } }` |
+| `$mul` | Multiply a numeric value | `{ $mul: { sal: 2 } }` |
+| `$rename` | Rename a field | `{ $rename: { sal: "salary" } }` |
 | `updateOne()` | Update first match | `db.emp.updateOne(filter, update)` |
 | `updateMany()` | Update all matches | `db.emp.updateMany(filter, update)` |
 | `deleteOne()` | Delete first match | `db.emp.deleteOne(filter)` |
@@ -776,8 +846,244 @@ db.emp.find({
 
 ---
 
-## New Topics — Add Below
+## 17. Update Operations and Update Operators
 
-Add each new class topic here as a new numbered section. If a new major topic is added, also add it to the Table of Contents above.
+Update operations are used to modify existing documents in a collection. An update usually has two parts:
 
-db.Mobile.updateOne({name:"Iphone 17 Pro"}{$set: {ram: 15GB}})
+- **Filter:** identifies which document or documents should be updated.
+- **Update operator:** tells MongoDB what change to make.
+
+**General syntax:**
+
+```javascript
+db.collection.updateOne(
+  { filterCondition },
+  { updateOperator: { field: newValue } }
+)
+```
+
+Use the actual collection name and field names from your data. The examples below use the `emp` collection and the employee `SMITH`.
+
+### `updateOne()` — update one matching document
+
+**Definition:** `updateOne()` updates the first document that matches the filter. If several documents match, it updates only one of them.
+
+```javascript
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $set: { sal: 2500 } }
+)
+```
+
+- `{ ename: "SMITH" }` is the filter that finds the employee.
+- `$set` changes the `sal` field to `2500`.
+- If no document matches, no document is updated.
+
+**Use it when:** you want to update one matching document.
+
+### `updateMany()` — update all matching documents
+
+**Definition:** `updateMany()` updates every document that matches the filter.
+
+```javascript
+db.emp.updateMany(
+  { deptno: 20 },
+  { $inc: { sal: 100 } }
+)
+```
+
+This increases the salary by `100` for every employee in department `20`.
+
+- The filter decides which employees are affected.
+- The update operator decides what change is made.
+- If no documents match, no document is updated.
+
+**Important:** Check the filter carefully before running `updateMany()`, because multiple documents can change.
+
+### Update operator: `$inc` — increase or decrease a numeric value
+
+**Definition:** `$inc` increases or decreases a numeric field by the specified amount.
+
+```javascript
+// Increase SMITH's salary by 1000
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $inc: { sal: 1000 } }
+)
+
+// Decrease SMITH's salary by 800
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $inc: { sal: -800 } }
+)
+```
+
+- A positive number increases the value.
+- A negative number decreases the value.
+- `$inc` is for numeric values. If the field does not exist, MongoDB creates it with the specified increment value.
+
+### Update operator: `$max` — keep the greater value
+
+**Definition:** `$max` updates a field only when the specified value is greater than the field's current value.
+
+```javascript
+// Set sal to 1000 only if the current salary is less than 1000
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $max: { sal: 1000 } }
+)
+```
+
+For example:
+
+- Current salary `800`, supplied value `1000` → salary becomes `1000`.
+- Current salary `1500`, supplied value `1000` → no change.
+- Current salary `1000`, supplied value `1000` → no change is needed.
+
+**Remember:** `$max` does not add the supplied number. It keeps the greater of the current and supplied values.
+
+### Update operator: `$min` — keep the smaller value
+
+**Definition:** `$min` updates a field only when the specified value is less than the field's current value.
+
+```javascript
+// Set sal to 500 only if the current salary is greater than 500
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $min: { sal: 500 } }
+)
+```
+
+For example:
+
+- Current salary `800`, supplied value `500` → salary becomes `500`.
+- Current salary `300`, supplied value `500` → no change.
+- Current salary `500`, supplied value `500` → no change is needed.
+
+**Remember:** `$min` does not subtract the supplied number. It keeps the smaller of the current and supplied values.
+
+### Update operator: `$mul` — multiply a numeric value
+
+**Definition:** `$mul` multiplies a numeric field by the specified number.
+
+```javascript
+// Double SMITH's salary
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $mul: { sal: 2 } }
+)
+```
+
+If the salary is `800`, multiplying it by `2` makes it `1600`.
+
+- `$mul: { sal: 2 }` doubles the salary.
+- `$mul: { sal: 3 }` triples the salary.
+- `$mul: { sal: 0.5 }` makes the salary half its current value.
+
+`$inc`, `$max`, `$min`, and `$mul` are numeric update operators. Use them with fields containing suitable numeric values.
+
+### Update operator: `$set` — add a field or replace its value
+
+**Definition:** `$set` assigns the specified value to a field. It can work with different data types, not just numbers.
+
+```javascript
+// Set the salary to 800
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $set: { sal: 800 } }
+)
+
+// Change the employee name
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $set: { ename: "STEVE" } }
+)
+
+// Update more than one field in the same operation
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $set: { ename: "STEVE", sal: 800 } }
+)
+```
+
+- If the field exists, `$set` changes its value.
+- If the field does not exist, `$set` adds it.
+- You can set strings, numbers, Boolean values, arrays, objects, and other supported BSON values.
+
+**Note:** In the second and third examples, the filter finds `SMITH` before changing the name. After the name changes, the same filter `{ ename: "SMITH" }` will not find that document.
+
+### Update operator: `$rename` — rename a field
+
+**Definition:** `$rename` changes a field's name without changing the value stored in that field.
+
+```javascript
+db.emp.updateOne(
+  { ename: "SMITH" },
+  { $rename: { ename: "emp_name", sal: "salary" } }
+)
+```
+
+This renames `ename` to `emp_name` and `sal` to `salary` in the matching document.
+
+- The left side is the existing field name.
+- The right side is the new field name, written as a string.
+- `$rename` changes field names; it is not used to change the field's value directly.
+
+**Caution:** If a field with the new name already exists, its value can be replaced as part of the rename. Check your document before using it.
+
+### Update operator: `$unset` — remove a field
+
+**Definition:** `$unset` removes a field from a document. The value provided alongside the field name is ignored; an empty string is commonly used.
+
+```javascript
+// Remove the name field from documents where age is 23
+db.emp.updateOne(
+  { age: 23 },
+  { $unset: { name: "" } }
+)
+
+// Remove the age field from the first matching document
+db.emp.updateOne(
+  { age: 23 },
+  { $unset: { age: "" } }
+)
+```
+
+- `$unset` removes the specified field completely.
+- It does not just set the field to an empty string.
+- The filter `{ age: 23 }` chooses the document; `$unset` decides which field to remove.
+- If multiple documents should be changed, use `updateMany()` with the appropriate filter.
+
+### Quick comparison of update operators
+
+| Operator | Definition | Example | Result |
+|---|---|---|---|
+| `$inc` | Adds or subtracts an amount from a number | `{ $inc: { sal: 100 } }` | Adds 100 to `sal` |
+| `$max` | Sets the field only if the new value is greater | `{ $max: { sal: 1000 } }` | Keeps the greater value |
+| `$min` | Sets the field only if the new value is smaller | `{ $min: { sal: 500 } }` | Keeps the smaller value |
+| `$mul` | Multiplies a numeric field | `{ $mul: { sal: 2 } }` | Doubles `sal` |
+| `$set` | Adds a field or changes its value | `{ $set: { sal: 800 } }` | Sets `sal` to 800 |
+| `$rename` | Changes a field's name | `{ $rename: { sal: "salary" } }` | Renames `sal` to `salary` |
+| `$unset` | Removes a field | `{ $unset: { comm: "" } }` | Removes `comm` |
+
+### Common mistakes to avoid
+
+1. **Confusing `$inc` with `$set`:** `$inc` adds or subtracts an amount; `$set` assigns an exact value.
+2. **Confusing `$max` with `$inc`:** `$max` compares two values; it does not add them.
+3. **Confusing `$min` with subtraction:** `$min` keeps the smaller value; it does not subtract.
+4. **Using `$max` when you mean `$min`:** To keep the lower value, use `$min`.
+5. **Forgetting the filter:** Without a specific filter, `updateOne()` can update one arbitrary matching document, while `updateMany({})` can affect every document.
+6. **Using the old name after `$rename` or `$set`:** Once a field is renamed or its identifying value is changed, a filter using the old field name or value may no longer match.
+7. **Expecting `$unset` to set an empty value:** `$unset` removes the field entirely.
+
+### Quick revision: update methods and operators
+
+- `updateOne(filter, update)` — update the first matching document.
+- `updateMany(filter, update)` — update all matching documents.
+- `$inc` — increase or decrease a numeric value.
+- `$max` — update only if the supplied value is greater.
+- `$min` — update only if the supplied value is smaller.
+- `$mul` — multiply a numeric value.
+- `$set` — add a field or change its value.
+- `$rename` — rename a field.
+- `$unset` — remove a field.
