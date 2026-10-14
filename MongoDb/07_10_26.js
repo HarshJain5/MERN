@@ -38,10 +38,47 @@
 //? to update data in collection
 // 1. updateOne()
     // updateOne() method updates a single document that matches the specified filter. If multiple documents match the filter, only the first matching document will be updated. If no documents match the filter, no changes will be made.
-    // db.collection.updateOne({filter}, {$set: {field: newValue}})
+    // db.collection.updateOne({condition}, {$set: {field: newValue}})
 // 2. updateMany()
-    // updateMany() method updates all documents that match the specified filter. If no documents match the filter, no changes will be made.
-    // db.collection.updateMany({filter}, {$set: {field: newValue}})
+    // updateMany() method updates all documents that match the specified filter. 
+    // If no documents match the filter, no changes will be made.
+    // it will change the value in dbs
+    // syntax: db.collection.updateMany({filter}, {updation})
+    //1. $inc
+    // db.emp.updateOne({ename:'smith'},{$inc:{sal: 1000}})
+    // db.emp.updateOne({ename:'smith'},{$inc:{sal: -800}})
+
+    //2. $max 
+    // same as increment but it will only work when the specified value is greater than actual value. 
+    //// db.emp.updateOne({ename:'smith'},{$max:{sal: 1000}})
+    // db.emp.updateOne({ename:'smith'},{$max:{sal: 800}}) does not update anything because it is lesss than actual value
+
+    //3. $min 
+    // same as increment but it will only work when the specified value is less than actual value. 
+    //// db.emp.updateOne({ename:'smith'},{$max:{sal: 500}})
+    // db.emp.updateOne({ename:'smith'},{$max:{sal: 1000}}) does not update anything because it is greater than actual value
+
+    //4. $mul:
+    // when we have to perform mathematical operations or double the salary. only performed on numeric value
+    // db.emp.updateOne({ename:'smith'},{$mul:{sal: 2}})   it will double the salary
+
+    //these all 4 are used only on number datatype
+
+    //5. $set
+    // it will work on every datatype
+    // db.emp.updateOne({ename:'smith'},{$set:{sal: 800}})
+    // db.emp.updateOne({ename:'smith'},{$set:{ename: 'steve'}})
+    // db.emp.updateOne({ename:'smith'},{$set:{ename: 'steve',sal: 800}})
+
+    //?To modify the key name
+    //6. $rename
+    // rename is used to modify the keyname
+    //db.emp.updateOne({ename:'smith'},{$rename:{ename: 'emp_name',sal:'salary'}})
+
+    //7. $unset 
+    // unset is mainly use to delete particular key/fields or values
+    // db.emp.updateOne({age:23},{$unset:{name:"" }})
+    // db.emp.updateOne({age:23},{$unset:{age:"" }})
 
 //? delete
 //? to delete database
