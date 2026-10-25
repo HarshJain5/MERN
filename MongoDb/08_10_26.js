@@ -157,4 +157,49 @@
 
 
 
+db.emp.aggregate([
+    {
+        $group: {
+            _id: '$deptno: {$in: [20,30]}',
+            avgSal: {$avg: '$sal'}
+        },
+    },
+    {
+        $project: {
+            avgSal: 1,
+            _id: 0,
+            deptno: '$_id'
+        }
+    }
+])
 
+// display the total salary paid to employees who are working as managaer?
+// questions
+
+
+
+// ?Having
+// having will use by using $match
+// if we use $match before $group it will actas where 
+// and if we use $match after $group it will act as having
+// 1. Find documents whose total employee sal is greater than 10000
+db.emp.aggregate([
+    {
+        $group: {
+            _id: '$deptno',
+            totalSal: {$sum: "$sal"}
+        }
+    },
+    {
+        $match: {
+            totalSal: {$gt: 10000}
+        }
+    },
+    {
+        $project: {
+            totalSal: 1,
+            _id:0,
+            deptno: "$_id"
+        }
+    }
+])
